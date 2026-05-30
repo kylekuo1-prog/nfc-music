@@ -3,444 +3,719 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>♪ 專屬歌曲</title>
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Supabase JS SDK -->
+  <title>♪ 專屬歌曲 / Your Song</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Noto+Serif+TC:wght@300;400&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg: #0a0a0f;
-      --surface: #13131a;
-      --border: rgba(255,255,255,0.07);
-      --accent: #c8a96e;
-      --accent-soft: rgba(200,169,110,0.12);
-      --text: #e8e4dc;
-      --text-muted: #6b6b7a;
+      --cream: #EDE8DF;
+      --paper: #E5DFD3;
+      --dark:  #1A1712;
+      --red:   #C8341A;
+      --muted: #7A7060;
+      --line:  #C8BFA8;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
+    html, body {
+      height: 100%;
+      background: var(--cream);
+      color: var(--dark);
+      font-family: 'DM Mono', monospace;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Grain texture overlay */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)' opacity='0.055'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .page {
       min-height: 100dvh;
       display: flex;
-      align-items: center;
+      align-items: stretch;
       justify-content: center;
-      overflow: hidden;
+    }
+
+    /* ── TICKET CARD ── */
+    .ticket {
+      width: min(100vw, 390px);
+      display: flex;
+      flex-direction: column;
+      background: var(--paper);
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
       position: relative;
+      animation: appear 0.5s cubic-bezier(0.16,1,0.3,1) both;
     }
 
-    /* Ambient background orbs */
-    body::before, body::after {
-      content: '';
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(80px);
-      pointer-events: none;
-      z-index: 0;
-    }
-    body::before {
-      width: 320px; height: 320px;
-      background: radial-gradient(circle, rgba(200,169,110,0.08) 0%, transparent 70%);
-      top: -60px; right: -60px;
-      animation: drift1 8s ease-in-out infinite alternate;
-    }
-    body::after {
-      width: 260px; height: 260px;
-      background: radial-gradient(circle, rgba(100,80,200,0.06) 0%, transparent 70%);
-      bottom: -40px; left: -40px;
-      animation: drift2 10s ease-in-out infinite alternate;
-    }
-
-    @keyframes drift1 { to { transform: translate(20px, 30px); } }
-    @keyframes drift2 { to { transform: translate(-15px, -25px); } }
-
-    .card {
-      position: relative;
-      z-index: 1;
-      width: min(88vw, 360px);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 36px 28px 32px;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
-      animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(24px); }
+    @keyframes appear {
+      from { opacity: 0; transform: translateY(16px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .logo-ring {
-      width: 56px; height: 56px;
-      border-radius: 50%;
-      border: 1px solid var(--accent);
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 20px;
+    /* ── TOP COLOR SWATCHES (Dunkirk style) ── */
+    .swatches {
+      display: flex;
+      height: 10px;
+    }
+    .swatches span {
+      flex: 1;
+    }
+    .sw1 { background: #1A1712; }
+    .sw2 { background: #4A8A6A; }
+    .sw3 { background: #8A7A3A; }
+    .sw4 { background: #C8341A; }
+    .sw5 { background: #E8B840; }
+
+    /* ── HEADER META ROW ── */
+    .meta-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--line);
+      gap: 0;
+    }
+    .meta-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .meta-col:nth-child(2) { align-items: center; }
+    .meta-col:nth-child(3) { align-items: flex-end; }
+    .meta-label {
+      font-size: 8px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      line-height: 1;
+    }
+    .meta-value {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: var(--dark);
+      font-weight: 400;
+    }
+
+    /* ── GLOBE ICON ── */
+    .globe-wrap {
+      position: absolute;
+      top: 24px; right: 20px;
+      width: 32px; height: 32px;
+    }
+    .globe-wrap svg {
+      width: 32px; height: 32px;
+      stroke: var(--dark);
+      fill: none;
+      stroke-width: 1.2;
+      opacity: 0.5;
+    }
+
+    /* ── BIG TITLE SECTION ── */
+    .title-section {
+      padding: 20px 20px 0;
+    }
+    .eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .eyebrow::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
+    .big-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(54px, 16vw, 72px);
+      line-height: 0.9;
+      color: var(--dark);
+      letter-spacing: 0.02em;
+      margin-bottom: 2px;
+    }
+    .big-title .red { color: var(--red); }
+
+    /* ── DASHED TEAR LINE ── */
+    .tear-line {
+      display: flex;
+      align-items: center;
+      margin: 18px 0;
       position: relative;
     }
-    .logo-ring::before {
+    .tear-line::before,
+    .tear-line::after {
       content: '';
-      position: absolute;
-      inset: -5px;
+      width: 18px; height: 18px;
       border-radius: 50%;
-      border: 1px solid rgba(200,169,110,0.2);
+      background: var(--cream);
+      border: 1px solid var(--line);
+      flex-shrink: 0;
+      margin: 0 -9px;
+      z-index: 1;
     }
-    .logo-ring svg { width: 22px; height: 22px; color: var(--accent); }
-
-    .title-serif {
-      font-family: 'Cormorant Garamond', serif;
-      font-weight: 300;
-      font-size: 1.65rem;
-      letter-spacing: 0.02em;
-      text-align: center;
-      color: var(--text);
+    .tear-dashes {
+      flex: 1;
+      border-top: 1.5px dashed var(--line);
+      margin: 0 18px;
     }
 
-    .subtitle {
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.78rem;
-      letter-spacing: 0.08em;
+    /* ── BODY CONTENT ── */
+    .body-section {
+      padding: 0 20px;
+      flex: 1;
+    }
+
+    /* ── INPUT AREA ── */
+    .field-label {
+      font-size: 8px;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+      margin-top: 20px;
+      display: block;
+    }
+    input[type="url"] {
+      width: 100%;
+      background: rgba(26,23,18,0.05);
+      border: none;
+      border-bottom: 1.5px solid var(--dark);
+      padding: 10px 0;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--dark);
+      outline: none;
+      transition: border-color 0.2s;
+      border-radius: 0;
+    }
+    input[type="url"]::placeholder {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    input[type="url"]:focus {
+      border-bottom-color: var(--red);
+    }
+
+    .hint-text {
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
       margin-top: 6px;
     }
 
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 24px 0;
-    }
-
-    /* --- Input Section --- */
-    label {
-      display: block;
-      font-size: 0.7rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    .input-wrap {
-      position: relative;
-    }
-
-    input[type="url"] {
-      width: 100%;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 13px 14px;
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.88rem;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    input[type="url"]::placeholder { color: var(--text-muted); }
-    input[type="url"]:focus {
-      border-color: rgba(200,169,110,0.5);
-      box-shadow: 0 0 0 3px rgba(200,169,110,0.08);
-    }
-
-    .url-hint {
-      margin-top: 8px;
-      font-size: 0.72rem;
-      color: var(--text-muted);
-    }
-
-    .btn-save {
+    /* ── BUTTONS ── */
+    .btn-main {
       width: 100%;
       margin-top: 20px;
-      padding: 14px;
-      background: var(--accent);
-      color: #0a0a0f;
+      padding: 14px 20px;
+      background: var(--dark);
+      color: var(--cream);
       border: none;
-      border-radius: 10px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.88rem;
-      font-weight: 500;
-      letter-spacing: 0.05em;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 0.1em;
       cursor: pointer;
-      transition: opacity 0.2s, transform 0.15s;
-      position: relative;
-      overflow: hidden;
+      transition: background 0.15s, transform 0.1s;
+      border-radius: 0;
     }
-    .btn-save:active { transform: scale(0.98); }
-    .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-save .btn-text { display: block; }
+    .btn-main:hover { background: #2e2a22; }
+    .btn-main:active { transform: scale(0.99); }
+    .btn-main:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* --- Playing Section --- */
-    .playing-wrap { text-align: center; }
-
-    .vinyl {
-      width: 80px; height: 80px;
-      border-radius: 50%;
-      background: conic-gradient(
-        #1a1a1a 0deg, #2a2a2a 60deg, #1a1a1a 120deg,
-        #2a2a2a 180deg, #1a1a1a 240deg, #2a2a2a 300deg, #1a1a1a 360deg
-      );
-      margin: 0 auto 20px;
-      position: relative;
-      display: flex; align-items: center; justify-content: center;
-      animation: spin 3s linear infinite;
-      box-shadow: 0 0 0 2px rgba(200,169,110,0.3), 0 8px 24px rgba(0,0,0,0.5);
-    }
-    .vinyl::after {
-      content: '';
-      width: 20px; height: 20px;
-      border-radius: 50%;
-      background: var(--bg);
-      border: 2px solid var(--accent);
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .playing-label {
-      font-size: 0.72rem;
-      letter-spacing: 0.15em;
+    .btn-secondary {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      padding: 12px 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border-radius: 0;
     }
-    .playing-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.4rem;
-      font-weight: 300;
-      color: var(--text);
+    .btn-secondary:hover { background: rgba(26,23,18,0.05); }
+
+    .btn-row-2 {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    /* ── PLAYING STATE ── */
+    .playing-block {
+      padding: 10px 0;
+    }
+    .rec-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .rec-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      animation: blink 1s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+    .rec-text {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--red);
+    }
+
+    .playing-big {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(42px, 13vw, 58px);
+      line-height: 0.88;
+      color: var(--dark);
       margin-bottom: 6px;
     }
-    .playing-sub {
-      font-size: 0.78rem;
-      color: var(--text-muted);
+    .playing-domain {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      margin-bottom: 16px;
     }
 
-    .progress-bar {
+    .progress-wrap {
       height: 2px;
-      background: var(--border);
-      border-radius: 2px;
-      margin-top: 24px;
-      overflow: hidden;
+      background: var(--line);
+      margin-bottom: 10px;
     }
     .progress-fill {
       height: 100%;
-      background: var(--accent);
-      border-radius: 2px;
-      animation: progress 1.5s linear forwards;
+      background: var(--red);
+      animation: prog 1.5s linear forwards;
     }
-    @keyframes progress { from { width: 0%; } to { width: 100%; } }
+    @keyframes prog { from{width:0%} to{width:100%} }
 
-    /* --- Loading / Error --- */
-    .loading-dots span {
+    .change-btn {
+      background: none;
+      border: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      padding: 0;
+      margin-top: 8px;
       display: inline-block;
+    }
+    .change-btn:hover { color: var(--dark); }
+
+    /* ── SUCCESS STATE ── */
+    .success-block { padding: 10px 0; }
+    .success-big {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(52px, 15vw, 68px);
+      line-height: 0.88;
+      color: var(--dark);
+      margin-bottom: 8px;
+    }
+    .success-big span { color: var(--red); }
+    .success-sub {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      line-height: 1.8;
+    }
+
+    /* ── LOADING ── */
+    .loading-block {
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .loading-big {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(52px, 15vw, 68px);
+      line-height: 0.88;
+      color: var(--dark);
+    }
+    .loading-dots {
+      display: flex;
+      gap: 5px;
+      padding: 10px 0;
+    }
+    .loading-dots span {
       width: 5px; height: 5px;
       border-radius: 50%;
-      background: var(--accent);
-      margin: 0 3px;
-      animation: bounce 1.2s ease-in-out infinite;
+      background: var(--dark);
+      animation: ldot 1.2s ease-in-out infinite;
+      opacity: 0.3;
     }
-    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce {
-      0%,80%,100% { transform: translateY(0); opacity: 0.4; }
-      40%          { transform: translateY(-6px); opacity: 1; }
+    .loading-dots span:nth-child(2){ animation-delay:0.2s; }
+    .loading-dots span:nth-child(3){ animation-delay:0.4s; }
+    @keyframes ldot { 40%{ opacity:1; transform:translateY(-4px); } }
+
+    /* ── ERROR MSG ── */
+    .err-msg {
+      font-size: 10px;
+      color: var(--red);
+      letter-spacing: 0.06em;
+      margin-top: 10px;
+      min-height: 16px;
     }
 
-    .msg-error {
-      font-size: 0.82rem;
-      color: #e07070;
-      text-align: center;
-      margin-top: 12px;
-      min-height: 18px;
+    /* ── BARCODE FOOTER ── */
+    .barcode-section {
+      padding: 20px 20px 0;
+      margin-top: auto;
     }
-    .msg-success {
-      font-size: 0.82rem;
-      color: #70c090;
-      text-align: center;
-      margin-top: 12px;
+    .barcode-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+    }
+    .barcode-svg {
+      flex: 1;
+    }
+    .barcode-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+      padding-bottom: 4px;
+    }
+    .barcode-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
     }
 
-    /* Util */
+    /* ── BOTTOM STRIP ── */
+    .bottom-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px 14px;
+      margin-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+    .strip-left {
+      font-size: 8px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .strip-right {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 9px;
+      color: var(--muted);
+      font-weight: 300;
+      letter-spacing: 0.06em;
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
+<div class="page">
+<div class="ticket">
 
-<div class="card" id="card">
-
-  <!-- ── 載入中 ── -->
-  <div id="view-loading" class="text-center py-4">
-    <div class="logo-ring mb-5">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-      </svg>
-    </div>
-    <div class="loading-dots mt-2">
-      <span></span><span></span><span></span>
-    </div>
-    <p class="subtitle mt-4">讀取中</p>
+  <!-- Color swatches -->
+  <div class="swatches">
+    <span class="sw1"></span>
+    <span class="sw2"></span>
+    <span class="sw3"></span>
+    <span class="sw4"></span>
+    <span class="sw5"></span>
   </div>
 
-  <!-- ── 首次使用：綁定歌曲 ── -->
-  <div id="view-bind" class="hidden">
-    <div class="logo-ring">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-      </svg>
+  <!-- Meta row -->
+  <div class="meta-row">
+    <div class="meta-col">
+      <span class="meta-label">Series</span>
+      <span class="meta-value">Analog Collection</span>
     </div>
-    <h1 class="title-serif">綁定您的歌曲</h1>
-    <p class="subtitle mt-1">這張卡片尚未連結音樂</p>
-
-    <div class="divider"></div>
-
-    <label for="url-input">Spotify 或 YouTube 連結</label>
-    <div class="input-wrap">
-      <input
-        type="url"
-        id="url-input"
-        placeholder="貼上歌曲連結…"
-        autocomplete="off"
-        spellcheck="false"
-      />
+    <div class="meta-col">
+      <span class="meta-label">Type</span>
+      <span class="meta-value">NFC Card</span>
     </div>
-    <p class="url-hint">支援 Spotify、YouTube、Apple Music 等連結</p>
-
-    <button class="btn-save" id="btn-save" onclick="saveSong()">
-      <span class="btn-text">儲存並完成綁定</span>
-    </button>
-    <p class="msg-error hidden" id="msg-error"></p>
-  </div>
-
-  <!-- ── 已有歌曲：自動跳轉 ── -->
-  <div id="view-playing" class="hidden playing-wrap">
-    <div class="vinyl"></div>
-    <p class="playing-label">正在為您播放</p>
-    <p class="playing-title">專屬歌曲</p>
-    <p class="playing-sub" id="playing-url-hint">即將跳轉…</p>
-    <div class="progress-bar">
-      <div class="progress-fill"></div>
+    <div class="meta-col">
+      <span class="meta-label">Frame</span>
+      <span class="meta-value" id="frame-display">—</span>
     </div>
   </div>
 
-  <!-- ── 儲存成功 ── -->
-  <div id="view-success" class="hidden text-center py-2">
-    <div style="font-size:2.4rem; margin-bottom:12px;">✓</div>
-    <h1 class="title-serif">綁定成功</h1>
-    <p class="playing-sub mt-2">下次感應此卡片，<br>將直接播放您的歌曲。</p>
+  <!-- Globe icon -->
+  <div class="globe-wrap">
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="28" height="28" rx="3"/>
+      <circle cx="16" cy="16" r="11"/>
+      <line x1="16" y1="5" x2="16" y2="27"/>
+      <line x1="5" y1="16" x2="27" y2="16"/>
+      <path d="M16 5 C10 10 10 22 16 27"/>
+      <path d="M16 5 C22 10 22 22 16 27"/>
+    </svg>
   </div>
 
-  <!-- ── 錯誤 ── -->
-  <div id="view-error" class="hidden text-center py-2">
-    <div style="font-size:2rem; margin-bottom:12px; color:#e07070;">✕</div>
-    <h1 class="title-serif" style="color:#e07070">發生錯誤</h1>
-    <p class="playing-sub mt-2" id="error-detail">請稍後再試</p>
+  <!-- Big Title + views -->
+  <div class="title-section">
+
+    <!-- VIEW: Loading -->
+    <div id="view-loading">
+      <div class="eyebrow">Reading card</div>
+      <div class="big-title">LOADING<br><span class="red">DATA</span></div>
+      <div class="loading-block">
+        <div class="loading-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: Bind -->
+    <div id="view-bind" class="hidden">
+      <div class="eyebrow">First use · 首次使用</div>
+      <div class="big-title">BIND<br><span class="red">YOUR<br>SONG</span></div>
+    </div>
+
+    <!-- VIEW: Playing -->
+    <div id="view-playing" class="hidden">
+      <div class="eyebrow">Now playing · 正在播放</div>
+      <div class="playing-block">
+        <div class="rec-row">
+          <div class="rec-dot"></div>
+          <span class="rec-text">Playing your track</span>
+        </div>
+        <div class="playing-big">YOUR<br><span style="color:var(--red)">EXCLUSIVE<br>SONG</span></div>
+        <div class="playing-domain" id="playing-domain">Redirecting…</div>
+        <div class="progress-wrap"><div class="progress-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- VIEW: Edit -->
+    <div id="view-edit" class="hidden">
+      <div class="eyebrow">Change song · 更換歌曲</div>
+      <div class="big-title">NEW<br><span class="red">TRACK</span></div>
+    </div>
+
+    <!-- VIEW: Success -->
+    <div id="view-success" class="hidden">
+      <div class="eyebrow">Complete · 完成</div>
+      <div class="success-block">
+        <div class="success-big"><span>SONG</span><br>SAVED.</div>
+        <p class="success-sub">
+          下次感應此卡片<br>
+          將自動播放您的旋律<br><br>
+          Tap this card again to<br>play your song directly.
+        </p>
+      </div>
+    </div>
+
+    <!-- VIEW: Error -->
+    <div id="view-error" class="hidden">
+      <div class="eyebrow">Error · 錯誤</div>
+      <div class="big-title">READ<br><span class="red">FAILED</span></div>
+      <p style="font-size:11px; color:var(--muted); margin-top:10px; letter-spacing:0.04em;" id="error-detail">請稍後再試 / Please try again</p>
+    </div>
+
+  </div><!-- /title-section -->
+
+  <!-- Tear line -->
+  <div class="tear-line">
+    <div class="tear-dashes"></div>
   </div>
 
-</div><!-- /card -->
+  <!-- Body content -->
+  <div class="body-section">
+
+    <!-- Bind inputs -->
+    <div id="body-bind" class="hidden">
+      <label class="field-label" for="url-input">貼上連結 / Paste Link</label>
+      <input type="url" id="url-input" placeholder="spotify.com · youtube.com · music.apple.com…" autocomplete="off" spellcheck="false"/>
+      <p class="hint-text">▸ 支援各大串流平台 / All streaming platforms supported</p>
+      <button class="btn-main" id="btn-save" onclick="saveSong()">
+        <span id="btn-text">BIND THIS SONG · 綁定歌曲</span>
+      </button>
+      <p class="err-msg hidden" id="msg-error"></p>
+    </div>
+
+    <!-- Playing action -->
+    <div id="body-playing" class="hidden">
+      <button class="change-btn" onclick="switchToEdit()">
+        ↳ 想換一首歌？/ Change song
+      </button>
+    </div>
+
+    <!-- Edit inputs -->
+    <div id="body-edit" class="hidden">
+      <label class="field-label" for="url-edit">新連結 / New Link</label>
+      <input type="url" id="url-edit" placeholder="貼上新的歌曲連結…" autocomplete="off" spellcheck="false"/>
+      <p class="hint-text">▸ 舊連結將被覆蓋 / Old link will be replaced</p>
+      <div class="btn-row-2">
+        <button class="btn-secondary" onclick="cancelEdit()">✕ 取消</button>
+        <button class="btn-main" id="btn-update" onclick="updateSong()" style="margin-top:0;">
+          <span id="btn-update-text">UPDATE SONG</span>
+        </button>
+      </div>
+      <p class="err-msg hidden" id="msg-error-edit"></p>
+    </div>
+
+  </div><!-- /body-section -->
+
+  <!-- Barcode -->
+  <div class="barcode-section">
+    <div class="barcode-row">
+      <svg class="barcode-svg" id="barcode-svg" viewBox="0 0 200 36" xmlns="http://www.w3.org/2000/svg" height="36"></svg>
+      <div class="barcode-info">
+        <span class="barcode-num" id="barcode-num">000000000000</span>
+        <span class="barcode-num">ANALOG MUSIC CO.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom strip -->
+  <div class="bottom-strip">
+    <span class="strip-left">EST. 2024 · TAIWAN</span>
+    <span class="strip-right">底片相機 × 音樂</span>
+  </div>
+
+</div><!-- /ticket -->
+</div><!-- /page -->
 
 <script>
   // ═══════════════════════════════════════════
-  //  ⚙️  請修改以下兩行為你的 Supabase 設定
+  //  ⚙️  Supabase 設定（已填入你的資料）
   // ═══════════════════════════════════════════
-  const SUPABASE_URL = 'https://byvyhjobgsgqcekbkppw.supabase.co';   // ← 替換
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5dnloam9iZ3NncWNla2JrcHB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNDE5NDQsImV4cCI6MjA5NTcxNzk0NH0.6voD0rUtu_UvRl03dJH6rTg1MVCcB7XV7J5IwRIx7xY'; // ← 替換
-  const TABLE_NAME = 'nfc_songs'; // Supabase 資料表名稱
+  const SUPABASE_URL      = 'https://byvyhjobgsgqcekbkppw.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5dnloam9iZ3NncWNla2JrcHB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNDE5NDQsImV4cCI6MjA5NTcxNzk0NH0.6voD0rUtu_UvRl03dJH6rTg1MVCcB7XV7J5IwRIx7xY' +
+    'Hd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0NzA4MDIsImV4cCI6MjA2MzA0NjgwMn0.6voD0rUtu_UvRl03dJH6rTg1MVCcB7';
+  const TABLE_NAME = 'nfc_songs';
   // ═══════════════════════════════════════════
 
   const { createClient } = supabase;
   const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // 取得 URL 中的 id 參數
   const params = new URLSearchParams(location.search);
-  const nfcId = params.get('id');
+  const nfcId  = params.get('id') || '0000';
+  let currentUrl = null;
+
+  // Frame display + barcode
+  document.getElementById('frame-display').textContent = nfcId.padStart(4,'0');
+  generateBarcode(nfcId);
+
+  function generateBarcode(id) {
+    const svg = document.getElementById('barcode-svg');
+    const num = document.getElementById('barcode-num');
+    const seed = id.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+    const bars = 52;
+    let x = 0;
+    let d = '';
+    const rng = (s,i) => ((Math.sin(s*9.3+i*7.1)*4321)%1+1)%1;
+    for(let i=0;i<bars;i++){
+      const w = Math.max(1, Math.round(rng(seed,i)*3)+1);
+      if(i%2===0) d += `<rect x="${x}" y="0" width="${w}" height="36" fill="#1A1712"/>`;
+      x += w + 1;
+    }
+    svg.innerHTML = d;
+    num.textContent = String(seed*nfcId.length+1234567).padStart(12,'0').slice(-12);
+  }
 
   function showView(name) {
-    ['loading','bind','playing','success','error'].forEach(v =>
-      document.getElementById('view-' + v).classList.toggle('hidden', v !== name)
-    );
+    ['loading','bind','playing','edit','success','error'].forEach(v=>{
+      document.getElementById('view-'+v).classList.toggle('hidden', v!==name);
+    });
+    ['bind','playing','edit'].forEach(v=>{
+      const el = document.getElementById('body-'+v);
+      if(el) el.classList.toggle('hidden', v!==name);
+    });
   }
 
   async function init() {
-    if (!nfcId) {
-      showView('error');
-      document.getElementById('error-detail').textContent = '連結中缺少 NFC ID，請確認卡片設定。';
-      return;
-    }
-
     try {
       const { data, error } = await db
-        .from(TABLE_NAME)
-        .select('song_url')
-        .eq('nfc_id', nfcId)
-        .maybeSingle();
-
+        .from(TABLE_NAME).select('song_url').eq('nfc_id', nfcId).maybeSingle();
       if (error) throw error;
-
       if (data && data.song_url) {
-        // 已綁定 → 顯示播放畫面並跳轉
+        currentUrl = data.song_url;
         showView('playing');
-        const hint = new URL(data.song_url);
-        document.getElementById('playing-url-hint').textContent = hint.hostname;
-        setTimeout(() => {
-          window.location.href = data.song_url;
-        }, 1500);
+        try {
+          document.getElementById('playing-domain').textContent =
+            '↗ ' + new URL(data.song_url).hostname;
+        } catch{}
+        setTimeout(() => { window.location.href = data.song_url; }, 1500);
       } else {
-        // 尚未綁定 → 顯示綁定表單
         showView('bind');
       }
-    } catch (err) {
+    } catch(err) {
       showView('error');
-      document.getElementById('error-detail').textContent = err.message || '資料庫連線失敗';
+      document.getElementById('error-detail').textContent = err.message || '連線失敗 / Connection failed';
     }
   }
 
   async function saveSong() {
-    const input = document.getElementById('url-input');
-    const btn   = document.getElementById('btn-save');
-    const errEl = document.getElementById('msg-error');
-
-    const url = input.value.trim();
-    errEl.classList.add('hidden');
-
-    // 基本驗證
-    if (!url) {
-      errEl.textContent = '請貼上歌曲連結';
-      errEl.classList.remove('hidden');
-      return;
-    }
-    try { new URL(url); } catch {
-      errEl.textContent = '連結格式不正確，請重新貼上';
-      errEl.classList.remove('hidden');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.querySelector('.btn-text').textContent = '儲存中…';
-
+    const url = document.getElementById('url-input').value.trim();
+    const btn = document.getElementById('btn-save');
+    const txt = document.getElementById('btn-text');
+    const err = document.getElementById('msg-error');
+    err.classList.add('hidden');
+    if (!url) { showErr(err,'請貼上歌曲連結 / Please paste a link'); return; }
+    try { new URL(url); } catch { showErr(err,'連結格式不正確 / Invalid URL format'); return; }
+    btn.disabled = true; txt.textContent = 'SAVING…';
     try {
-      const { error } = await db
-        .from(TABLE_NAME)
-        .upsert({ nfc_id: nfcId, song_url: url }, { onConflict: 'nfc_id' });
-
+      const { error } = await db.from(TABLE_NAME)
+        .upsert({ nfc_id: nfcId, song_url: url }, { onConflict:'nfc_id' });
       if (error) throw error;
       showView('success');
-    } catch (err) {
-      btn.disabled = false;
-      btn.querySelector('.btn-text').textContent = '儲存並完成綁定';
-      errEl.textContent = '儲存失敗：' + (err.message || '請重試');
-      errEl.classList.remove('hidden');
+    } catch(e) {
+      btn.disabled = false; txt.textContent = 'BIND THIS SONG · 綁定歌曲';
+      showErr(err, '儲存失敗 / Save failed: ' + (e.message||''));
     }
+  }
+
+  function switchToEdit() {
+    showView('edit');
+    document.getElementById('url-edit').value = currentUrl || '';
+  }
+
+  function cancelEdit() { showView('playing'); }
+
+  async function updateSong() {
+    const url = document.getElementById('url-edit').value.trim();
+    const btn = document.getElementById('btn-update');
+    const txt = document.getElementById('btn-update-text');
+    const err = document.getElementById('msg-error-edit');
+    err.classList.add('hidden');
+    if (!url) { showErr(err,'請貼上新連結 / Please paste a new link'); return; }
+    try { new URL(url); } catch { showErr(err,'連結格式不正確 / Invalid URL'); return; }
+    btn.disabled = true; txt.textContent = 'SAVING…';
+    try {
+      const { error } = await db.from(TABLE_NAME)
+        .upsert({ nfc_id: nfcId, song_url: url }, { onConflict:'nfc_id' });
+      if (error) throw error;
+      currentUrl = url;
+      showView('success');
+    } catch(e) {
+      btn.disabled = false; txt.textContent = 'UPDATE SONG';
+      showErr(err, '更新失敗 / Update failed: ' + (e.message||''));
+    }
+  }
+
+  function showErr(el, msg) {
+    el.textContent = msg; el.classList.remove('hidden');
   }
 
   init();
